@@ -1,0 +1,137 @@
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.8.1
+  environment:
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+    AIRFLOW__CORE__FERNET_KEY: 46BKJoQYlPPOexq0OhDZnIlNepKFf87WFwLbfzqDDho=
+    AIRFLOW__CORE__LOAD_EXAMPLES: False
+    _PIP_ADDITIONAL_REQUIREMENTS: "minio"
+    AIRFLOW__CORE__DAGS_FOLDER: /opt/airflow/dags              # Limit concurrent tasks
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./requirements.txt:/requirements.txt
+    - ./data:/opt/airflow/data
+  depends_on:
+    - postgres
+    - minio
+
+services:
+  # --- Storage Layer (MinIO) ---
+  minio:
+    image: minio/minio
+    container_name: olist_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+  # Auto-create the 'olist-lake' bucket
+  minio-init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (mc alias set minio http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}); do echo '...waiting...' && sleep 1; done;
+      mc mb --ignore-existing minio/olist-lake;
+      "
+  
+  airflow-init:
+    <<: *airflow-common
+    container_name: airflow_init
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        # 1. Initialize/Migrate the metadata database
+        airflow db migrate
+        
+        # 2. Create your custom admin user
+        airflow users create \
+            --username admin \
+            --firstname admin \
+            --lastname admin \
+            --role Admin \
+            --email admin@example.com \
+            --password admin
+            
+        # 3. Final check to ensure it exits correctly
+        echo "Initialization complete."
+
+  # --- Metadata Layer (Postgres) ---
+  postgres:
+    image: postgres:13
+    container_name: olist_postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: airflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  # --- Query Layer (Trino) ---
+  trino:
+    image: trinodb/trino:latest
+    container_name: olist_trino
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/trino/catalog:/etc/trino/catalog
+    environment:
+      - JVM_MAX_HEAP_SIZE=1G
+    depends_on:
+      - minio
+  # --- Orchestration (Airflow) ---
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8081:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 1G  # Limits the webserver to 1GB
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s # Increased interval to give it more time to breathe
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G # Limits the scheduler to 1.5GB
+
+  # --- Visualization (Metabase) ---
+
+  metabase:
+    image: metabase/metabase:latest    
+    container_name: olist_metabase
+    ports:
+      - "3000:3000"
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER}
+      MB_DB_PASS: ${POSTGRES_PASSWORD}
+      MB_DB_HOST: postgres
+      MB_JAVA_OPTS: "-Xmx512m"
+    depends_on:
+      - postgres
+volumes:
+  minio_data:
+  postgres_data:
