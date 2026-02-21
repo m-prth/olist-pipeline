@@ -1,12 +1,21 @@
-apache-airflow-providers-trino
+# Airflow providers
 apache-airflow-providers-amazon
+
+# Data processing
 polars
 pandas
-minio
 pyarrow
 fsspec
 s3fs
-trino
-dbt-trino
-dbt
+duckdb
+
+# MinIO client
+minio
+
+# Database
 psycopg2-binary
+
+# Dashboard
+streamlit
+plotly
+pydeck

@@ -17,6 +17,7 @@ __pycache__/
 .Python
 env/
 venv/
+.venv/
 .pytest_cache/
 
 # Jupyter Notebooks
@@ -31,5 +32,7 @@ venv/
 airflow.db
 airflow-webserver.pid
 standalone_admin_password.txt
-CLAUDE.MD
-TODO.MD
+
+# AI assistant / local config (do not commit)
+CLAUDE.md
+startup_settings.txt
