@@ -43,43 +43,36 @@ def get_orders_for_date(df_orders, target_date):
 def process_date(target_date, datasets):
     print(f"Processing data for date: {target_date}")
 
-    #get orders for the date
     daily_orders = get_orders_for_date(datasets["orders"], target_date)
 
     if daily_orders.height == 0:
         print(f"No orders found for date: {target_date}. Skipping.")
         return False
 
-    #get active order and customer ids for the date
     active_order_ids = daily_orders["order_id"]
     active_customer_ids = daily_orders["customer_id"]
-
-    #create daily landing zone
+    
     output_path = os.path.join(LANDING_ZONE, target_date)
     os.makedirs(output_path, exist_ok=True)
 
-    #save orders
     daily_orders.write_parquet(os.path.join(output_path, "orders.parquet"))
 
-    #filter and save tables
+    datasets["order_items"].filter(pl.col("order_id").is_in(active_order_ids)).write_parquet(os.path.join(output_path, "order_items.parquet"))
+    datasets["order_payments"].filter(pl.col("order_id").is_in(active_order_ids)).write_parquet(os.path.join(output_path, "order_payments.parquet"))
+    datasets["order_reviews"].filter(pl.col("order_id").is_in(active_order_ids)).write_parquet(os.path.join(output_path, "order_reviews.parquet"))
+    datasets["customers"].filter(pl.col("customer_id").is_in(active_customer_ids)).write_parquet(os.path.join(output_path, "customers.parquet"))
 
-    #items
-    daily_items = datasets["order_items"].filter(pl.col("order_id").is_in(active_order_ids.to_list()))
-    daily_items.write_parquet(os.path.join(output_path, "order_items.parquet"))
+    active_items = datasets["order_items"].filter(pl.col("order_id").is_in(active_order_ids))
+    active_seller_ids = active_items["seller_id"].unique()
+    active_product_ids = active_items["product_id"].unique()
 
-    #payments
-    daily_payments = datasets["order_payments"].filter(pl.col("order_id").is_in(active_order_ids.to_list()))
-    daily_payments.write_parquet(os.path.join(output_path, "order_payments.parquet"))
+    datasets["sellers"].filter(pl.col("seller_id").is_in(active_seller_ids)).write_parquet(os.path.join(output_path, "sellers.parquet"))
+    datasets["products"].filter(pl.col("product_id").is_in(active_product_ids)).write_parquet(os.path.join(output_path, "products.parquet"))
 
-    #reviews
-    daily_reviews = datasets["order_reviews"].filter(pl.col("order_id").is_in(active_order_ids.to_list()))
-    daily_reviews.write_parquet(os.path.join(output_path, "order_reviews.parquet"))
+    datasets["geolocation"].write_parquet(os.path.join(output_path, "geolocation.parquet"))
+    datasets["product_category_name_translation"].write_parquet(os.path.join(output_path, "product_category_name_translation.parquet"))
 
-    #customers (only those who made orders on that day)
-    daily_customers = datasets["customers"].filter(pl.col("customer_id").is_in(active_customer_ids.to_list()))
-    daily_customers.write_parquet(os.path.join(output_path, "customers.parquet"))
-
-    print(f"Exported {daily_orders.height} orders to {output_path}")
+    print(f"Exported {daily_orders.height} orders and all related tables to {output_path}")
     return True
 
 def main():
