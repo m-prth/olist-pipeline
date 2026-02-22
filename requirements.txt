@@ -8,6 +8,7 @@ pyarrow
 fsspec
 s3fs
 duckdb
+dbt-duckdb
 
 # MinIO client
 minio

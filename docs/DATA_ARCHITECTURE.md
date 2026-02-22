@@ -28,7 +28,7 @@ The raw data consists of 9 relational tables. We will ingest these as-is, adding
 
 ## 2. Silver Layer (Cleansed & Conformed)
 
-* **Transformation Engine:** dbt / Polars
+* **Transformation Engine:** Polars (deduplication) — dbt staging models provide additional cleansing for Gold
 * **Storage:** MinIO `processing-zone/silver/`
 * **Format:** Iceberg (for ACID compliance) or Parquet
 
@@ -55,7 +55,8 @@ The raw data consists of 9 relational tables. We will ingest these as-is, adding
 * **Purpose:** Business Analytics & Reporting
 * **Storage:** MinIO `processing-zone/gold/`
 * **Format:** Iceberg
-* **Serving:** Trino  Metabase
+* **Serving:** Trino  Metabase (planned)
+* **Transformation Engine:** dbt (`dbt-duckdb`)
 
 We will use a **Star Schema** approach, with distinct fact tables for different grains to avoid fan-out errors.
 

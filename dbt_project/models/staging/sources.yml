@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: silver
+    meta:
+      external_location: "read_parquet('s3://olist-lake/silver/{name}/**/*.parquet')"
+    tables:
+      - name: orders
+      - name: customers
+      - name: sellers
+      - name: order_items
+      - name: geolocation

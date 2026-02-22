@@ -33,6 +33,15 @@ airflow.db
 airflow-webserver.pid
 standalone_admin_password.txt
 
+# dbt
+dbt_project/target/
+dbt_project/logs/
+dbt_project/.user.yml
+*.duckdb
+*.duckdb.wal
+
 # AI assistant / local config (do not commit)
 CLAUDE.md
+TODO.md
 startup_settings.txt
+.gemini/

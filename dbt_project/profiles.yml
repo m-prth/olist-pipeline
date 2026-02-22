@@ -1,0 +1,39 @@
+olist_pipeline:
+  outputs:
+    airflow:
+      type: duckdb
+      path: '/tmp/dbt.duckdb'
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        memory_limit: '1GB'
+        max_memory: '1GB'
+        threads: 1
+      secrets:
+        - type: s3
+          key_id: "admin"
+          secret: "password"
+          region: "us-east-1"
+          endpoint: "minio:9000"
+          url_style: "path"
+          use_ssl: false
+      external_root: "s3://olist-lake/gold"
+
+    dev:
+      type: duckdb
+      path: 'local_dev.duckdb'
+      extensions:
+        - httpfs
+        - parquet
+      secrets:
+        - type: s3
+          key_id: "admin"
+          secret: "password"
+          region: "us-east-1"
+          endpoint: "localhost:9000"
+          url_style: "path"
+          use_ssl: false
+      external_root: "s3://olist-lake/gold"
+
+  target: dev
