@@ -53,14 +53,17 @@ This is the active development checklist for the Olist Data Pipeline.
 
 ---
 
-## Phase 6: Planned Enhancements 🔜
-- [ ] Add Trino service to `docker-compose.yaml`
-- [ ] Add Metabase service to `docker-compose.yaml`
-- [ ] Implement full dbt project (`dbt_project/`) for Silver/Gold
-  - [ ] `dbt init` + configure `profiles.yml` for Trino
-  - [ ] Silver staging models (date casting, type coercion, geolocation centroid)
-  - [ ] Gold mart models (mirroring current DuckDB logic)
-  - [ ] `schema.yml` with `unique` / `not_null` tests
+## Phase 6: dbt Implementation ✅
+- [x] Implement dbt project (`dbt_project/`) for Gold layer
+  - [x] Configure `profiles.yml` for DuckDB + MinIO (dev & airflow targets)
+  - [x] Staging models: `stg_orders`, `stg_customers`, `stg_sellers`, `stg_order_items`, `stg_geolocation`
+  - [x] Mart models: `dim_customers`, `dim_sellers`, `fact_orders`, `fact_order_lifecycle`, `fact_shipping_network`
+  - [x] `schema.yml` with `unique` / `not_null` tests
+  - [x] DAG `03_process_gold` rewritten to use `dbt run` + `dbt test` via BashOperator
+
+---
+
+## Phase 7: Planned Enhancements 🔜
 - [ ] Add `dim_products` to Gold layer
 - [ ] Add `dim_date` (calendar dimension) to Gold layer
 - [ ] Implement `fact_order_items` (line-item grain)

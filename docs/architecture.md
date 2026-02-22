@@ -70,11 +70,11 @@ The Silver layer currently applies **universal deduplication** using `polars.Dat
 ## 🥇 Gold Layer (Dimensional Modeling)
 
 **Goal:** Business-ready Star Schema tables for analytics and reporting.
-**Engine:** DuckDB (`03_process_gold` DAG)
-**Format:** Parquet
+**Engine:** dbt + DuckDB (`03_process_gold` DAG, using `dbt-duckdb`)
+**Format:** Parquet (external materialization)
 **Path:** `s3://olist-lake/gold/<model>/<model>.parquet`
 
-DuckDB reads Silver Parquet files directly from MinIO via `httpfs` and writes results back.
+dbt reads Silver Parquet files from MinIO via DuckDB’s `httpfs` extension and materializes mart models as external Parquet back to MinIO.
 
 ### Dimension Tables
 
@@ -94,17 +94,20 @@ DuckDB reads Silver Parquet files directly from MinIO via `httpfs` and writes re
 ### Gold DAG Task Graph
 
 ```
-start_gold_pipeline
-    ├── build_dim_customers ─┐
-    └── build_dim_sellers ───┤
-                             ▼
-                    dimensions_complete
-                    ├── build_fact_orders
-                    ├── build_fact_order_lifecycle
-                    └── build_fact_shipping_network
-                             ▼
-                     end_gold_pipeline
+dbt_run  →  dbt_test
 ```
+
+| Task ID | Description |
+|---|---|
+| `dbt_run` | Runs `dbt run` — builds all staging views and mart Parquet files |
+| `dbt_test` | Runs `dbt test` — validates `unique` and `not_null` constraints on mart models |
+
+### dbt Model Layers
+
+| Layer | Models | Materialization |
+|---|---|---|
+| **Staging** (`models/staging/`) | `stg_orders`, `stg_customers`, `stg_sellers`, `stg_order_items`, `stg_geolocation` | View (on Silver Parquet) |
+| **Marts** (`models/marts/`) | `dim_customers`, `dim_sellers`, `fact_orders`, `fact_order_lifecycle`, `fact_shipping_network` | External Parquet (to `s3://olist-lake/gold/`) |
 
 ---
 
@@ -113,7 +116,7 @@ start_gold_pipeline
 | Decision | Reason |
 |---|---|
 | **Polars over Pandas** | ~5–10x faster for deduplication on large Parquet datasets; lower memory footprint |
-| **DuckDB over dbt/Trino** | Zero-overhead SQL on remote Parquet (via httpfs); no server required; full SQL dialect |
+| **dbt-duckdb** | Declarative SQL models with lineage, testing, and documentation; DuckDB provides zero-overhead SQL on remote Parquet via httpfs |
 | **DuckDB over Spark** | Dataset size (~100k rows) does not justify Spark's overhead |
 | **MinIO** | S3-compatible, runs locally in Docker, no cloud costs |
 | **Parquet format** | Columnar, compressed, ideal for analytical queries |
@@ -124,4 +127,4 @@ start_gold_pipeline
 
 - **Trino** configured in `config/trino/catalog/minio.properties` as a future SQL serving layer
 - **Metabase** planned as BI tool connecting to Trino
-- **dbt** project structure in `dbt_project/` ready for Silver/Gold transformation migration
+- Additional dbt models planned: `dim_products`, `dim_date`, `fact_order_items`, `fact_payments`

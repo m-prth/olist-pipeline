@@ -18,7 +18,7 @@ graph LR
     subgraph C["🥈 Silver (MinIO)"]
         C1[Deduplicated\nParquet files]
     end
-    C -->|DAG 03 · DuckDB| D
+    C -->|DAG 03 · dbt| D
     subgraph D["🥇 Gold (MinIO)"]
         D1[fact_orders]
         D2[dim_customers]
@@ -37,7 +37,7 @@ graph LR
 | Orchestration | Apache Airflow 2.8.1 | DAG scheduling & task management |
 | Storage | MinIO (S3-compatible) | Data Lake for all layers |
 | Processing (Silver) | Polars | Fast dataframe deduplication |
-| Processing (Gold) | DuckDB | In-process SQL dimensional modeling |
+| Processing (Gold) | dbt + DuckDB | SQL dimensional modeling via dbt-duckdb |
 | Visualization | Streamlit + PyDeck + Plotly | BI Dashboard with 3D shipping map |
 | Infrastructure | Docker Compose | Containerized local environment |
 | Metadata DB | PostgreSQL 13 | Airflow backend |
@@ -104,7 +104,25 @@ olist-pipeline/
 ├── dags/                        # Airflow DAGs
 │   ├── 01_ingest_bronze.py      # Raw CSV → MinIO Bronze
 │   ├── 02_process_silver.py     # Deduplicate → MinIO Silver
-│   └── 03_process_gold.py       # Dimensional models → MinIO Gold
+│   └── 03_process_gold.py       # dbt run → MinIO Gold
+├── dbt_project/                 # dbt models (Gold layer)
+│   ├── models/
+│   │   ├── staging/             # Views on Silver Parquet
+│   │   │   ├── sources.yml
+│   │   │   ├── stg_orders.sql
+│   │   │   ├── stg_customers.sql
+│   │   │   ├── stg_sellers.sql
+│   │   │   ├── stg_order_items.sql
+│   │   │   └── stg_geolocation.sql
+│   │   └── marts/               # External Parquet tables
+│   │       ├── schema.yml
+│   │       ├── dim_customers.sql
+│   │       ├── dim_sellers.sql
+│   │       ├── fact_orders.sql
+│   │       ├── fact_order_lifecycle.sql
+│   │       └── fact_shipping_network.sql
+│   ├── dbt_project.yml
+│   └── profiles.yml
 ├── scripts/
 │   ├── simulate_stream.py       # Daily/backfill data generator
 │   ├── backfill_data.py         # Bulk historical data loader
@@ -115,7 +133,6 @@ olist-pipeline/
 │   ├── raw_kaggle/              # Source CSVs from Kaggle
 │   ├── input/                   # Daily landing zone (watched by Airflow)
 │   └── archive/                 # Processed files archive
-├── dbt_project/                 # dbt models (planned)
 ├── docker-compose.yaml
 ├── requirements.txt
 └── .env                         # Credentials (not committed)
@@ -137,8 +154,9 @@ olist-pipeline/
 
 ## 🗺️ Roadmap
 
+- [x] Implement dbt project for Gold transformations (dbt-duckdb)
+- [x] Add dbt tests (`unique`, `not_null`) on mart models
 - [ ] Add Trino as a SQL query layer over Gold Parquet files
 - [ ] Add Metabase for BI dashboards connected to Trino
-- [ ] Implement full dbt project for Silver/Gold transformations
 - [ ] Add `dim_products` and `dim_date` to the Gold layer
-- [ ] Add dbt tests and data quality checks
+- [ ] Add `fact_order_items` and `fact_payments` fact tables

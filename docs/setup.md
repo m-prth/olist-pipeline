@@ -109,7 +109,7 @@ For running scripts like `simulate_stream.py` and `dashboard.py` on your local m
 ```bash
 python -m venv .venv
 .venv\Scripts\activate   # Windows
-pip install -r requirements.txt
+pip install -r requirements.txt   # Includes dbt-duckdb, polars, etc.
 pip install streamlit plotly pydeck   # Dashboard extras
 ```
 

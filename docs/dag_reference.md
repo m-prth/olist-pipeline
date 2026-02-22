@@ -58,7 +58,7 @@ Run **after** `01_ingest_bronze` has completed successfully.
 ## DAG 03: `03_process_gold`
 
 **File:** `dags/03_process_gold.py`
-**Purpose:** Reads Silver Parquet files via DuckDB (using httpfs) and builds the Gold Star Schema dimensional model.
+**Purpose:** Runs the dbt project to build all Gold layer models (staging views + mart Parquet files) and validate data quality.
 **Schedule:** Manual (`schedule_interval=None`)
 
 ### How to Trigger
@@ -67,40 +67,61 @@ Run **after** `02_process_silver` has completed successfully.
 ### Task Graph
 
 ```
-start_gold_pipeline
-    ├── build_dim_customers ─┐
-    └── build_dim_sellers ───┤
-                             ▼
-                    dimensions_complete
-                    ├── build_fact_orders
-                    ├── build_fact_order_lifecycle
-                    └── build_fact_shipping_network
-                             ▼
-                     end_gold_pipeline
+dbt_run  →  dbt_test
 ```
-
-Dimension tasks run in **parallel**. Fact tasks run in **parallel** after dimensions complete.
 
 ### Task Details
 
-| Task ID | SQL Logic | Output Path |
+| Task ID | Type | Command |
 |---|---|---|
-| `build_dim_customers` | `DISTINCT ON(customer_unique_id)` + `ROW_NUMBER()` for surrogate key | `gold/dim_customers/dim_customers.parquet` |
-| `build_dim_sellers` | `DISTINCT ON(seller_id)` + `ROW_NUMBER()` for surrogate key | `gold/dim_sellers/dim_sellers.parquet` |
-| `build_fact_orders` | Selects `order_id`, date, status, computes `is_late` boolean | `gold/fact_orders/fact_orders.parquet` |
-| `build_fact_order_lifecycle` | `date_diff()` between purchase → approval → delivery timestamps | `gold/fact_order_lifecycle/fact_order_lifecycle.parquet` |
-| `build_fact_shipping_network` | Joins orders + customers + sellers + geolocation (deduped centroids), computes Haversine `distance_km` | `gold/fact_shipping_network/fact_shipping_network.parquet` |
+| `dbt_run` | `BashOperator` | `cd /opt/airflow/dbt_project && dbt run --profiles-dir . --target airflow` |
+| `dbt_test` | `BashOperator` | `cd /opt/airflow/dbt_project && dbt test --profiles-dir . --target airflow` |
+
+### What `dbt run` Builds
+
+**Staging models** (materialized as views):
+- `stg_orders` — Casts timestamp columns from Silver orders
+- `stg_customers` — Selects customer fields from Silver
+- `stg_sellers` — Selects seller fields from Silver
+- `stg_order_items` — Selects order item fields from Silver
+- `stg_geolocation` — Selects geolocation fields from Silver
+
+**Mart models** (materialized as external Parquet to `s3://olist-lake/gold/`):
+- `dim_customers` — `DISTINCT ON(customer_unique_id)` + surrogate key
+- `dim_sellers` — `DISTINCT ON(seller_id)` + surrogate key
+- `fact_orders` — Order status, date key, `is_late` boolean
+- `fact_order_lifecycle` — `date_diff()` between purchase → approval → delivery timestamps
+- `fact_shipping_network` — Joins orders + customers + sellers + geolocation, computes Haversine `distance_km`
+
+### What `dbt test` Validates
+
+| Model | Tests |
+|---|---|
+| `dim_customers` | `customer_sk`: unique, not_null |
+| `dim_sellers` | `seller_sk`: unique, not_null |
+| `fact_orders` | `order_id`: not_null |
+| `fact_order_lifecycle` | `order_id`: not_null |
+| `fact_shipping_network` | `order_id`: not_null, `distance_km`: not_null |
 
 ### DuckDB Configuration
 
-All tasks connect to MinIO using the DuckDB `httpfs` extension with:
+Connection settings are defined in `dbt_project/profiles.yml` under the `airflow` target:
 
-```python
-TYPE S3, KEY_ID 'admin', SECRET 'password',
-ENDPOINT 'minio:9000', URL_STYLE 'path', USE_SSL false
+```yaml
+type: duckdb
+path: '/tmp/dbt.duckdb'
+extensions: [httpfs, parquet]
+secrets:
+  - type: s3
+    key_id: "admin"
+    secret: "password"
+    endpoint: "minio:9000"
+    url_style: "path"
+    use_ssl: false
+external_root: "s3://olist-lake/gold"
 ```
 
-> The endpoint `minio:9000` is the internal Docker hostname. DuckDB is not running in a separate container — it runs in-process inside the Airflow Python task.
+> The endpoint `minio:9000` is the internal Docker hostname. The `dbt_project/` directory is volume-mounted into the Airflow container at `/opt/airflow/dbt_project`.
 
 ---
 

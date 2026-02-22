@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: dim_customers
+    description: "Customer dimension - one row per unique customer"
+    columns:
+      - name: customer_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_sellers
+    description: "Seller dimension - one row per unique seller"
+    columns:
+      - name: seller_sk
+        tests:
+          - unique
+          - not_null
+
+  - name: fact_orders
+    description: "Order fact table with late delivery flag"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: fact_order_lifecycle
+    description: "Process mining metrics for delivered orders"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: fact_shipping_network
+    description: "Geospatial shipping routes with Haversine distance"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: distance_km
+        tests:
+          - not_null

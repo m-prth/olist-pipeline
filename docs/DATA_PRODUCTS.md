@@ -80,11 +80,9 @@ This document outlines the Medallion Architecture (Bronze -> Silver -> Gold) for
 - Metrics: `sales_volume`, `revenue`, `return_rate` (implied by low review scores).
 
 ## 4. Pipeline Flow
-1.  **Airflow Sensor**: Detects new daily file in `data/input/`.
-2.  **Ingest**: Load CSV to `Bronze` (MinIO).
-3.  **dbt Run (Silver)**:
-    - `ref('bronze_products')` + `ref('bronze_translations')` -> `silver_products`
-    - `ref('bronze_geo')` -> `silver_geo` (dedup)
-4.  **dbt Run (Gold)**:
-    - Join `silver_orders`, `silver_items`, `silver_customers` -> `fact_orders`.
-    - Aggregate Facts -> `dm_daily_sales`.
+1.  **Simulate Data**: `simulate_stream.py` drops a day's Parquet files into `data/input/`.
+2.  **DAG 01 — Ingest**: Upload Parquet batches to `Bronze` (MinIO).
+3.  **DAG 02 — Silver**: Polars deduplication → `Silver` (MinIO).
+4.  **DAG 03 — Gold (dbt)**:
+    - `dbt run`: Builds staging views on Silver, then materializes mart Parquet to Gold.
+    - `dbt test`: Validates `unique` / `not_null` constraints on mart models.
