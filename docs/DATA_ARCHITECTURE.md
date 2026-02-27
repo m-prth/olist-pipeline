@@ -1,5 +1,3 @@
-Here is the comprehensive architecture plan, formatted exactly as requested. It incorporates the granularity fixes (splitting Header/Line items) and adds the advanced "Level 2" tables to demonstrate senior engineering capabilities.
-
 # Olist Data Architecture Plan
 
 This document outlines the data lineage from raw ingestion (Bronze) to cleansed data (Silver) and final analytical models (Gold).
