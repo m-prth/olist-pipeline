@@ -107,20 +107,42 @@ olist-pipeline/
 │   └── 03_process_gold.py       # dbt run → MinIO Gold
 ├── dbt_project/                 # dbt models (Gold layer)
 │   ├── models/
-│   │   ├── staging/             # Views on Silver Parquet
+│   │   ├── staging/             # Views on Silver Parquet (8 models)
 │   │   │   ├── sources.yml
+│   │   │   ├── schema.yml
 │   │   │   ├── stg_orders.sql
+│   │   │   ├── stg_order_items.sql
 │   │   │   ├── stg_customers.sql
 │   │   │   ├── stg_sellers.sql
-│   │   │   ├── stg_order_items.sql
-│   │   │   └── stg_geolocation.sql
-│   │   └── marts/               # External Parquet tables
+│   │   │   ├── stg_geolocation.sql
+│   │   │   ├── stg_payments.sql
+│   │   │   ├── stg_products.sql
+│   │   │   └── stg_reviews.sql
+│   │   ├── marts/               # Dimensions & Fact tables (12 models)
+│   │   │   ├── schema.yml
+│   │   │   ├── dim_customers.sql
+│   │   │   ├── dim_sellers.sql
+│   │   │   ├── dim_products.sql
+│   │   │   ├── dim_geolocation.sql
+│   │   │   ├── dim_date.sql
+│   │   │   ├── fact_orders.sql
+│   │   │   ├── fact_order_items.sql
+│   │   │   ├── fact_payments.sql
+│   │   │   ├── fact_reviews.sql
+│   │   │   ├── fact_order_lifecycle.sql
+│   │   │   ├── fact_shipping_network.sql
+│   │   │   └── snapshot_daily_seller_backlog.sql
+│   │   └── data_products/       # Analytical reports (9 models)
 │   │       ├── schema.yml
-│   │       ├── dim_customers.sql
-│   │       ├── dim_sellers.sql
-│   │       ├── fact_orders.sql
-│   │       ├── fact_order_lifecycle.sql
-│   │       └── fact_shipping_network.sql
+│   │       ├── obt_sales_analytics.sql
+│   │       ├── rpt_customer_rfm.sql
+│   │       ├── rpt_seller_performance.sql
+│   │       ├── rpt_product_category_analysis.sql
+│   │       ├── rpt_shipping_efficiency.sql
+│   │       ├── rpt_cohort_retention.sql
+│   │       ├── rpt_revenue_trends.sql
+│   │       ├── rpt_customer_ltv.sql
+│   │       └── rpt_market_basket.sql
 │   ├── dbt_project.yml
 │   └── profiles.yml
 ├── scripts/
@@ -128,7 +150,7 @@ olist-pipeline/
 │   ├── backfill_data.py         # Bulk historical data loader
 │   └── dashboard.py             # Streamlit BI dashboard
 ├── config/
-│   └── trino/catalog/           # Trino connector configs (future)
+│   └── duckdb/                  # DuckDB configuration
 ├── data/
 │   ├── raw_kaggle/              # Source CSVs from Kaggle
 │   ├── input/                   # Daily landing zone (watched by Airflow)
@@ -156,7 +178,8 @@ olist-pipeline/
 
 - [x] Implement dbt project for Gold transformations (dbt-duckdb)
 - [x] Add dbt tests (`unique`, `not_null`) on mart models
-- [ ] Add Trino as a SQL query layer over Gold Parquet files
-- [ ] Add Metabase for BI dashboards connected to Trino
-- [ ] Add `dim_products` and `dim_date` to the Gold layer
-- [ ] Add `fact_order_items` and `fact_payments` fact tables
+- [x] Add `dim_products`, `dim_geolocation`, and `dim_date` to the Gold layer
+- [x] Add `fact_order_items`, `fact_payments`, `fact_reviews`, `snapshot_daily_seller_backlog`
+- [x] Build data products: RFM segmentation, seller performance, cohort retention, revenue trends, customer LTV, market basket analysis
+- [ ] Add Streamlit dashboards for interactive data exploration
+

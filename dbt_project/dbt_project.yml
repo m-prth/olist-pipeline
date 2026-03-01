@@ -15,3 +15,7 @@ models:
       +materialized: external
       +options:
         format: parquet
+    data_products:
+      +materialized: external
+      +options:
+        format: parquet

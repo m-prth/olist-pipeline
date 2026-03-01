@@ -82,14 +82,43 @@ dbt reads Silver Parquet files from MinIO via DuckDB’s `httpfs` extension and 
 |---|---|---|
 | `dim_customers` | 1 row per unique customer | `customer_sk`, `customer_unique_id`, `city`, `state` |
 | `dim_sellers` | 1 row per seller | `seller_sk`, `seller_id`, `city`, `state` |
+| `dim_products` | 1 row per product | `product_sk`, `product_id`, `product_category_name`, `volume_cm3`, `product_weight_g` |
+| `dim_geolocation` | 1 row per zip code | `zip_code_prefix`, `latitude`, `longitude` (centroid) |
+| `dim_date` | 1 row per day (2016–2018) | `date_key`, `year`, `month`, `quarter`, `day_of_week`, `is_weekend` |
 
 ### Fact Tables
 
 | Table | Grain | Key Metrics |
 |---|---|---|
 | `fact_orders` | 1 row per order | `order_id`, `customer_id`, `date_key`, `order_status`, `is_late` (bool) |
+| `fact_order_items` | 1 row per item in order | `order_id`, `product_id`, `seller_id`, `item_price`, `freight_value`, `total_line_value` |
+| `fact_payments` | 1 row per payment attempt | `order_id`, `payment_sequential`, `payment_type`, `installments`, `payment_value` |
+| `fact_reviews` | 1 row per review | `review_id`, `order_id`, `review_score`, `response_time_hours` |
 | `fact_order_lifecycle` | 1 row per delivered order | `order_id`, `approval_lag_hours`, `total_delivery_days`, `approval_efficiency` |
 | `fact_shipping_network` | 1 row per order route | `order_id`, `cust_lat/lng`, `sell_lat/lng`, `distance_km` (Haversine) |
+| `snapshot_daily_seller_backlog` | 1 row per seller/day | `seller_id`, `snapshot_date`, `open_orders_count`, `revenue_in_transit` |
+
+### Data Products
+
+| Table | Description |
+|---|---|
+| `obt_sales_analytics` | One Big Table for ad-hoc exploration |
+| `rpt_customer_rfm` | RFM segmentation with quintile scores |
+| `rpt_seller_performance` | Seller ranking by revenue, delivery, reviews |
+| `rpt_product_category_analysis` | Category-level sales and review analysis |
+| `rpt_shipping_efficiency` | Delivery vs distance bucketed analysis |
+| `rpt_cohort_retention` | Monthly customer cohort retention rates |
+| `rpt_revenue_trends` | Monthly KPIs with MoM growth and rolling averages |
+| `rpt_customer_ltv` | Customer Lifetime Value with tier and decile |
+| `rpt_market_basket` | Category co-occurrence with Jaccard similarity |
+
+### dbt Model Layers
+
+| Layer | Models | Materialization |
+|---|---|---|
+| **Staging** (`models/staging/`) | `stg_orders`, `stg_order_items`, `stg_customers`, `stg_sellers`, `stg_geolocation`, `stg_payments`, `stg_products`, `stg_reviews` | View (on Silver Parquet) |
+| **Marts** (`models/marts/`) | 5 dimensions + 7 fact tables | External Parquet (to `s3://olist-lake/gold/`) |
+| **Data Products** (`models/data_products/`) | 9 analytical reports and aggregations | External Parquet (to `s3://olist-lake/gold/`) |
 
 ### Gold DAG Task Graph
 
@@ -99,15 +128,8 @@ dbt_run  →  dbt_test
 
 | Task ID | Description |
 |---|---|
-| `dbt_run` | Runs `dbt run` — builds all staging views and mart Parquet files |
-| `dbt_test` | Runs `dbt test` — validates `unique` and `not_null` constraints on mart models |
-
-### dbt Model Layers
-
-| Layer | Models | Materialization |
-|---|---|---|
-| **Staging** (`models/staging/`) | `stg_orders`, `stg_customers`, `stg_sellers`, `stg_order_items`, `stg_geolocation` | View (on Silver Parquet) |
-| **Marts** (`models/marts/`) | `dim_customers`, `dim_sellers`, `fact_orders`, `fact_order_lifecycle`, `fact_shipping_network` | External Parquet (to `s3://olist-lake/gold/`) |
+| `dbt_run` | Runs `dbt run` — builds all staging views, mart tables, and data products |
+| `dbt_test` | Runs `dbt test` — validates `unique` and `not_null` constraints |
 
 ---
 
@@ -120,11 +142,4 @@ dbt_run  →  dbt_test
 | **DuckDB over Spark** | Dataset size (~100k rows) does not justify Spark's overhead |
 | **MinIO** | S3-compatible, runs locally in Docker, no cloud costs |
 | **Parquet format** | Columnar, compressed, ideal for analytical queries |
-
----
-
-## Planned Extensions
-
-- **Trino** configured in `config/trino/catalog/minio.properties` as a future SQL serving layer
-- **Metabase** planned as BI tool connecting to Trino
-- Additional dbt models planned: `dim_products`, `dim_date`, `fact_order_items`, `fact_payments`
+| **Streamlit** | Interactive Python-based dashboards for data exploration |

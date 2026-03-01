@@ -1,0 +1,80 @@
+version: 2
+
+models:
+  - name: obt_sales_analytics
+    description: "One Big Table - fact_order_items joined with orders, products, customers, sellers"
+    config:
+      location: "s3://olist-lake/gold/obt_sales_analytics/obt_sales_analytics.parquet"
+
+  - name: rpt_customer_rfm
+    description: "RFM segmentation - Recency, Frequency, Monetary scores per customer"
+    config:
+      location: "s3://olist-lake/gold/rpt_customer_rfm/rpt_customer_rfm.parquet"
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: rpt_seller_performance
+    description: "Seller ranking by revenue, delivery speed, and review score"
+    config:
+      location: "s3://olist-lake/gold/rpt_seller_performance/rpt_seller_performance.parquet"
+    columns:
+      - name: seller_id
+        tests:
+          - unique
+          - not_null
+
+  - name: rpt_product_category_analysis
+    description: "Category-level sales, revenue, and review analysis"
+    config:
+      location: "s3://olist-lake/gold/rpt_product_category_analysis/rpt_product_category_analysis.parquet"
+    columns:
+      - name: product_category_name
+        tests:
+          - unique
+          - not_null
+
+  - name: rpt_shipping_efficiency
+    description: "Delivery performance with distance overlay and bucketed analysis"
+    config:
+      location: "s3://olist-lake/gold/rpt_shipping_efficiency/rpt_shipping_efficiency.parquet"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+
+  - name: rpt_cohort_retention
+    description: "Customer cohort retention - monthly retention rates by acquisition cohort"
+    config:
+      location: "s3://olist-lake/gold/rpt_cohort_retention/rpt_cohort_retention.parquet"
+    columns:
+      - name: cohort_month
+        tests:
+          - not_null
+
+  - name: rpt_revenue_trends
+    description: "Monthly revenue KPIs with MoM growth, rolling average, and cumulative totals"
+    config:
+      location: "s3://olist-lake/gold/rpt_revenue_trends/rpt_revenue_trends.parquet"
+    columns:
+      - name: month
+        tests:
+          - unique
+          - not_null
+
+  - name: rpt_customer_ltv
+    description: "Customer Lifetime Value with spend, tenure, LTV tier, and decile ranking"
+    config:
+      location: "s3://olist-lake/gold/rpt_customer_ltv/rpt_customer_ltv.parquet"
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: rpt_market_basket
+    description: "Product category co-occurrence with Jaccard similarity for cross-sell analysis"
+    config:
+      location: "s3://olist-lake/gold/rpt_market_basket/rpt_market_basket.parquet"

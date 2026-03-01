@@ -4,3 +4,4 @@ SELECT
     seller_city,
     seller_state
 FROM {{ source('silver', 'sellers') }}
+QUALIFY ROW_NUMBER() OVER (PARTITION BY seller_id ORDER BY seller_id) = 1

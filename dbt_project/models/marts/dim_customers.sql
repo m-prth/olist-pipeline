@@ -1,8 +1,3 @@
-{{ config(
-    materialized='external', 
-    location='s3://olist-lake/gold/dim_customers/dim_customers.parquet'
-) }}
-
 SELECT
     ROW_NUMBER() OVER () AS customer_sk,
     customer_unique_id,

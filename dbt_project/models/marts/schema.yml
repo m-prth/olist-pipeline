@@ -3,6 +3,8 @@ version: 2
 models:
   - name: dim_customers
     description: "Customer dimension - one row per unique customer"
+    config:
+      location: "s3://olist-lake/gold/dim_customers/dim_customers.parquet"
     columns:
       - name: customer_sk
         tests:
@@ -11,14 +13,52 @@ models:
 
   - name: dim_sellers
     description: "Seller dimension - one row per unique seller"
+    config:
+      location: "s3://olist-lake/gold/dim_sellers/dim_sellers.parquet"
     columns:
       - name: seller_sk
         tests:
           - unique
           - not_null
 
+  - name: dim_products
+    description: "Product dimension - one row per unique product with English category"
+    config:
+      location: "s3://olist-lake/gold/dim_products/dim_products.parquet"
+    columns:
+      - name: product_sk
+        tests:
+          - unique
+          - not_null
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_geolocation
+    description: "Geolocation dimension - one row per zip code with centroid coordinates"
+    config:
+      location: "s3://olist-lake/gold/dim_geolocation/dim_geolocation.parquet"
+    columns:
+      - name: zip_code_prefix
+        tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    description: "Auto-generated date dimension covering 2016-2018"
+    config:
+      location: "s3://olist-lake/gold/dim_date/dim_date.parquet"
+    columns:
+      - name: date_key
+        tests:
+          - unique
+          - not_null
+
   - name: fact_orders
     description: "Order fact table with late delivery flag"
+    config:
+      location: "s3://olist-lake/gold/fact_orders/fact_orders.parquet"
     columns:
       - name: order_id
         tests:
@@ -26,6 +66,8 @@ models:
 
   - name: fact_order_lifecycle
     description: "Process mining metrics for delivered orders"
+    config:
+      location: "s3://olist-lake/gold/fact_order_lifecycle/fact_order_lifecycle.parquet"
     columns:
       - name: order_id
         tests:
@@ -33,10 +75,67 @@ models:
 
   - name: fact_shipping_network
     description: "Geospatial shipping routes with Haversine distance"
+    config:
+      location: "s3://olist-lake/gold/fact_shipping_network/fact_shipping_network.parquet"
     columns:
       - name: order_id
         tests:
           - not_null
       - name: distance_km
+        tests:
+          - not_null
+
+  - name: fact_order_items
+    description: "Line-grain fact table - one row per item in an order"
+    config:
+      location: "s3://olist-lake/gold/fact_order_items/fact_order_items.parquet"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+      - name: seller_id
+        tests:
+          - not_null
+
+  - name: fact_payments
+    description: "Transaction-grain fact table - one row per payment attempt"
+    config:
+      location: "s3://olist-lake/gold/fact_payments/fact_payments.parquet"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: payment_value
+        tests:
+          - not_null
+
+  - name: fact_reviews
+    description: "Feedback-grain fact table - one row per review"
+    config:
+      location: "s3://olist-lake/gold/fact_reviews/fact_reviews.parquet"
+    columns:
+      - name: review_id
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: review_score
+        tests:
+          - not_null
+
+  - name: snapshot_daily_seller_backlog
+    description: "Accumulating snapshot - one row per seller per day"
+    config:
+      location: "s3://olist-lake/gold/snapshot_daily_seller_backlog/snapshot_daily_seller_backlog.parquet"
+    columns:
+      - name: seller_id
+        tests:
+          - not_null
+      - name: snapshot_date
         tests:
           - not_null

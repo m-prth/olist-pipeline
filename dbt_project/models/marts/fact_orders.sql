@@ -1,8 +1,3 @@
-{{ config(
-    materialized='external',
-    location='s3://olist-lake/gold/fact_orders/fact_orders.parquet'
-) }}
-
 SELECT
     order_id,
     customer_id,

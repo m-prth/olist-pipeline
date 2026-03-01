@@ -10,7 +10,7 @@ This is the active development checklist for the Olist Data Pipeline.
 - [x] Create `.env` file for credentials
 - [x] Create `requirements.txt`
 - [x] Create `docker-compose.yaml` (MinIO, Postgres, Airflow)
-- [x] Configure Trino catalog skeleton (`config/trino/catalog/minio.properties`)
+- [x] Configure DuckDB as query engine
 
 ---
 
@@ -56,17 +56,17 @@ This is the active development checklist for the Olist Data Pipeline.
 ## Phase 6: dbt Implementation ✅
 - [x] Implement dbt project (`dbt_project/`) for Gold layer
   - [x] Configure `profiles.yml` for DuckDB + MinIO (dev & airflow targets)
-  - [x] Staging models: `stg_orders`, `stg_customers`, `stg_sellers`, `stg_order_items`, `stg_geolocation`
-  - [x] Mart models: `dim_customers`, `dim_sellers`, `fact_orders`, `fact_order_lifecycle`, `fact_shipping_network`
-  - [x] `schema.yml` with `unique` / `not_null` tests
+  - [x] Staging models (8): `stg_orders`, `stg_order_items`, `stg_customers`, `stg_sellers`, `stg_geolocation`, `stg_payments`, `stg_products`, `stg_reviews`
+  - [x] Dimension models (5): `dim_customers`, `dim_sellers`, `dim_products`, `dim_geolocation`, `dim_date`
+  - [x] Fact models (7): `fact_orders`, `fact_order_items`, `fact_payments`, `fact_reviews`, `fact_order_lifecycle`, `fact_shipping_network`, `snapshot_daily_seller_backlog`
+  - [x] Data products (9): `obt_sales_analytics`, `rpt_customer_rfm`, `rpt_seller_performance`, `rpt_product_category_analysis`, `rpt_shipping_efficiency`, `rpt_cohort_retention`, `rpt_revenue_trends`, `rpt_customer_ltv`, `rpt_market_basket`
+  - [x] `schema.yml` with `unique` / `not_null` tests (56 tests, all passing)
   - [x] DAG `03_process_gold` rewritten to use `dbt run` + `dbt test` via BashOperator
+  - [x] Centralized model configs in `schema.yml` (no inline `{{ config() }}` in SQL)
 
 ---
 
 ## Phase 7: Planned Enhancements 🔜
-- [ ] Add `dim_products` to Gold layer
-- [ ] Add `dim_date` (calendar dimension) to Gold layer
-- [ ] Implement `fact_order_items` (line-item grain)
-- [ ] Implement `fact_payments` (transaction grain)
+- [ ] Update Streamlit dashboard to visualize new data products (RFM, cohort heatmap, revenue trends)
 - [ ] Add data quality checks / alerting in Airflow
 - [ ] Add idempotency guard (skip re-ingesting already-uploaded partitions)

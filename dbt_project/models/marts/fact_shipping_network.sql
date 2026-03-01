@@ -1,8 +1,3 @@
-{{ config(
-    materialized='external',
-    location='s3://olist-lake/gold/fact_shipping_network/fact_shipping_network.parquet'
-) }}
-
 -- Step 1: Average coordinates per zip code (deduplicate geolocation)
 WITH geo_dedup AS (
     SELECT

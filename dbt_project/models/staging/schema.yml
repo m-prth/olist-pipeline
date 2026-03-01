@@ -1,0 +1,75 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Staged orders with timestamps cast to proper types"
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_order_items
+    description: "Staged order line items - one row per item in an order"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: product_id
+        tests:
+          - not_null
+
+  - name: stg_customers
+    description: "Staged customer records"
+    columns:
+      - name: customer_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_sellers
+    description: "Staged seller records"
+    columns:
+      - name: seller_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_geolocation
+    description: "Staged geolocation records by zip code"
+    columns:
+      - name: geolocation_zip_code_prefix
+        tests:
+          - not_null
+
+  - name: stg_payments
+    description: "Staged payment records with standardized payment types"
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+      - name: payment_value
+        tests:
+          - not_null
+
+  - name: stg_products
+    description: "Staged products with English category names from translation join"
+    columns:
+      - name: product_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_reviews
+    description: "Staged customer reviews with typed scores and dates"
+    columns:
+      - name: review_id
+        tests:
+          - unique
+          - not_null
+      - name: order_id
+        tests:
+          - not_null
+      - name: review_score
+        tests:
+          - not_null

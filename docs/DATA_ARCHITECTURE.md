@@ -41,10 +41,12 @@ The raw data consists of 9 relational tables. We will ingest these as-is, adding
 | --- | --- |
 | `stg_orders` | Cast dates (`purchase`, `approved`, `delivered`). Filter test orders. Calculate `estimated_delivery_days`. |
 | `stg_order_items` | Calculate `total_line_value` (price + freight). Do NOT aggregate yet (preserve line granularity). |
-| `stg_payments` | Standardize payment types (e.g., 'credit_card'  'Credit'). |
-| `stg_products` | Join with `category_translation` to get English category names. Fill null categories with 'Unknown'. |
+| `stg_payments` | Standardize payment types (e.g., 'credit_card' → 'Credit Card'). Cast `payment_value` to DOUBLE. |
+| `stg_products` | Join with `product_category_name_translation` for English names. Fill nulls with 'Unknown'. Deduplicate. |
 | `stg_customers` | Clean city names (Title Case, remove special chars). Deduplicate `customer_unique_id`. |
 | `stg_geolocation` | Group by `zip_code` and take the centroid (avg lat/long) to ensure 1 row per zip code. |
+| `stg_sellers` | Deduplicate on `seller_id` across date partitions. |
+| `stg_reviews` | Cast `review_score` to INT, date fields to TIMESTAMP. Deduplicate on `review_id`. |
 
 ---
 
@@ -52,8 +54,8 @@ The raw data consists of 9 relational tables. We will ingest these as-is, adding
 
 * **Purpose:** Business Analytics & Reporting
 * **Storage:** MinIO `processing-zone/gold/`
-* **Format:** Iceberg
-* **Serving:** Trino  Metabase (planned)
+* **Format:** Parquet (external materialization)
+* **Serving:** DuckDB → Streamlit
 * **Transformation Engine:** dbt (`dbt-duckdb`)
 
 We will use a **Star Schema** approach, with distinct fact tables for different grains to avoid fan-out errors.
@@ -71,7 +73,7 @@ We will use a **Star Schema** approach, with distinct fact tables for different 
 
 * *Grain: One row per Item in an Order.*
 * **Keys:** `order_id`, `product_id`, `seller_id`.
-* **Metrics:** `item_price`, `freight_value`.
+* **Metrics:** `item_price`, `freight_value`, `total_line_value`.
 * **Attributes:** `order_item_id`.
 
 **3. `fact_payments` (Transaction Grain)**
@@ -79,13 +81,13 @@ We will use a **Star Schema** approach, with distinct fact tables for different 
 * *Grain: One row per Payment Attempt.*
 * **Keys:** `order_id`, `payment_sequential`.
 * **Metrics:** `payment_value`, `installments`.
-* **Attributes:** `payment_type` (Credit, Boleto, Voucher).
+* **Attributes:** `payment_type` (Credit Card, Boleto, Voucher, Debit Card).
 
 **4. `fact_reviews` (Feedback Grain)**
 
 * *Grain: One row per Review.*
 * **Keys:** `review_id`, `order_id`.
-* **Metrics:** `review_score` (1-5).
+* **Metrics:** `review_score` (1-5), `response_time_hours`.
 
 ### Advanced Fact Tables (Level 2 Engineering)
 
@@ -99,7 +101,7 @@ We will use a **Star Schema** approach, with distinct fact tables for different 
 **6. `fact_order_lifecycle` (Process Mining)**
 
 * *Grain: One row per Order.*
-* **Metrics:** `approval_lag_hours`, `packaging_lag_hours`, `transit_lag_hours`.
+* **Metrics:** `approval_lag_hours`, `total_delivery_days`, `approval_efficiency`.
 * **Purpose:** Identify bottlenecks in the supply chain.
 
 **7. `snapshot_daily_seller_backlog` (Accumulating Snapshot)**
@@ -116,15 +118,14 @@ We will use a **Star Schema** approach, with distinct fact tables for different 
 * `customer_unique_id` (Natural Key)
 * `customer_city`
 * `customer_state`
-* `first_order_date`
 
 2. `dim_products`
 
 * `product_sk`
 * `product_id`
-* `category_name` (English)
-* `volume_cm3` (L  W  H)
-* `weight_g`
+* `product_category_name` (English)
+* `volume_cm3` (L × W × H)
+* `product_weight_g`
 
 3. `dim_sellers`
 
@@ -138,22 +139,30 @@ We will use a **Star Schema** approach, with distinct fact tables for different 
 * `zip_code_prefix`
 * `latitude` (Centroid)
 * `longitude` (Centroid)
-* `city`, `state`
 
 5. `dim_date` (Auto-generated)
 
 * `date_key`
 * `year`, `month`, `quarter`, `day_of_week`
-* `is_holiday_br`, `is_weekend`
+* `is_weekend`
 
 ---
 
-## 4. Final Data Products (Views/Aggregates)
+## 4. Data Products (Views/Aggregates)
 
-These will be created as views in Trino or final tables in Gold for Metabase dashboards to ensure sub-second performance.
+These are materialized as external Parquet tables in Gold, queryable via DuckDB with Streamlit dashboards.
+
+### Core Reports
 
 1. **`obt_sales_analytics`**: One Big Table joining `fact_order_items` + `orders` + `products` + `customers` + `sellers` for ad-hoc exploration.
-2. **`rpt_customer_rfm`**: Pre-calculated segmentation (Recency, Frequency, Monetary) for every customer.
+2. **`rpt_customer_rfm`**: Pre-calculated RFM segmentation (Recency, Frequency, Monetary) with quintile scores and segment labels.
 3. **`rpt_seller_performance`**: Top sellers by revenue, delivery speed, and review score.
-4. **`rpt_product_category_analysis`**: Best-selling categories and highest return rates.
-5. **`rpt_shipping_efficiency`**: Analysis of `estimated_delivery` vs `actual_delivery` overlaid with `distance_km`.
+4. **`rpt_product_category_analysis`**: Best-selling categories with revenue, review scores, and low-review percentage.
+5. **`rpt_shipping_efficiency`**: Analysis of `estimated_delivery` vs `actual_delivery` overlaid with `distance_km`, bucketed by time and distance.
+
+### Advanced KPIs
+
+6. **`rpt_cohort_retention`**: Monthly customer retention rates by acquisition cohort.
+7. **`rpt_revenue_trends`**: Monthly revenue with MoM growth %, rolling 3-month average, and cumulative totals.
+8. **`rpt_customer_ltv`**: Customer Lifetime Value with spend, tenure, monthly spend rate, LTV tier, and decile ranking.
+9. **`rpt_market_basket`**: Product category co-occurrence with Jaccard similarity coefficient for cross-sell analysis.

@@ -10,3 +10,7 @@ sources:
       - name: sellers
       - name: order_items
       - name: geolocation
+      - name: order_payments
+      - name: products
+      - name: order_reviews
+      - name: product_category_name_translation
