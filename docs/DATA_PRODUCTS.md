@@ -1,6 +1,6 @@
 # Data Products & Transformation Plan
 
-This document outlines the Medallion Architecture (Bronze -> Silver -> Gold) for the Olist E-Commerce pipeline.
+This document outlines the Medallion Architecture (Bronze -> Silver -> Gold) for the E-Commerce Medallion Pipeline.
 
 ## 1. Bronze Layer (Raw Ingestion)
 **Goal:** Ingest data "as-is" from CSV source to the Data Lake (MinIO).

@@ -1,4 +1,4 @@
-# 🇧🇷 Olist E-Commerce Data Pipeline
+# 🇧🇷 E-Commerce Medallion Pipeline
 
 A fully containerized, end-to-end **Data Engineering Pipeline** built on the [Olist E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). It implements a **Medallion Architecture** (Bronze → Silver → Gold) to ingest, clean, and serve analytics-ready data — a "Data Platform in a Box."
 

@@ -1,6 +1,6 @@
 # Project TODO
 
-This is the active development checklist for the Olist Data Pipeline.
+This is the active development checklist for the E-Commerce Medallion Pipeline.
 
 ---
 
