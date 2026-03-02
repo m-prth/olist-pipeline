@@ -13,7 +13,7 @@ Ensure the following are installed before you begin:
 | Docker Desktop | Latest | Must be running before any step |
 | Python | 3.9+ | For running scripts outside Docker |
 | Git | Any | For cloning the repo |
-| Kaggle account | — | To download the dataset |
+| Kaggle account | - | To download the dataset |
 
 ---
 
@@ -72,12 +72,12 @@ docker-compose up -d
 ```
 
 This command starts four services:
-- `olist_postgres` — Airflow metadata database
-- `olist_minio` — S3-compatible data lake storage
-- `minio-init` — One-shot container that creates the `olist-lake` bucket
-- `airflow-init` — One-shot container that initializes the Airflow DB and creates an admin user
-- `airflow-webserver` — Airflow web UI
-- `airflow-scheduler` — Airflow task runner
+- `olist_postgres` - Airflow metadata database
+- `olist_minio` - S3-compatible data lake storage
+- `minio-init` - One-shot container that creates the `olist-lake` bucket
+- `airflow-init` - One-shot container that initializes the Airflow DB and creates an admin user
+- `airflow-webserver` - Airflow web UI
+- `airflow-scheduler` - Airflow task runner
 
 > **First startup takes 2–3 minutes** as Airflow installs dependencies and runs database migrations.
 

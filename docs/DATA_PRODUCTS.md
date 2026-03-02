@@ -94,9 +94,9 @@ This document outlines the Medallion Architecture (Bronze -> Silver -> Gold) for
 
 ## 4. Pipeline Flow
 1.  **Simulate Data**: `simulate_stream.py` drops a day's Parquet files into `data/input/`.
-2.  **DAG 01 — Ingest**: Upload Parquet batches to `Bronze` (MinIO).
-3.  **DAG 02 — Silver**: Polars deduplication → `Silver` (MinIO).
-4.  **DAG 03 — Gold (dbt)**:
+2.  **DAG 01 - Ingest**: Upload Parquet batches to `Bronze` (MinIO).
+3.  **DAG 02 - Silver**: Polars deduplication → `Silver` (MinIO).
+4.  **DAG 03 - Gold (dbt)**:
     - `dbt run`: Builds 8 staging views, 12 mart tables, and 9 data products.
     - `dbt test`: Validates `unique` / `not_null` / `not_empty` constraints (57 tests total).
 

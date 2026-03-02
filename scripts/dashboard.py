@@ -21,16 +21,39 @@ PLOTLY_TEMPLATE = "plotly_dark"
 # Inject dark CSS overrides
 st.markdown("""
 <style>
+    /* Base Metric Styles */
     [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        border: 1px solid #0f3460;
         border-radius: 12px;
         padding: 16px 20px;
+        transition: all 0.3s ease;
     }
     [data-testid="stMetricLabel"] { font-size: 0.85rem; }
     [data-testid="stMetricValue"] { font-size: 1.6rem; font-weight: 700; }
     .block-container { padding-top: 1rem; }
-    div[data-testid="stSidebar"] > div { background: linear-gradient(180deg, #0a0a23 0%, #1a1a3e 100%); }
+
+    /* Dark Theme Styles */
+    @media (prefers-color-scheme: dark) {
+        [data-testid="stMetric"] {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border: 1px solid #0f3460;
+            color: #ffffff;
+        }
+        div[data-testid="stSidebar"] > div { 
+            background: linear-gradient(180deg, #0a0a23 0%, #1a1a3e 100%); 
+        }
+    }
+
+    /* Light Theme Styles */
+    @media (prefers-color-scheme: light) {
+        [data-testid="stMetric"] {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 1px solid #dee2e6;
+            color: #212529;
+        }
+        div[data-testid="stSidebar"] > div { 
+            background: linear-gradient(180deg, #f1f3f5 0%, #dee2e6 100%); 
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -67,19 +90,19 @@ st.sidebar.title("🇧🇷 Olist BI")
 st.sidebar.caption("E-Commerce Intelligence Platform")
 page = st.sidebar.radio(
     "Navigate",
-    ["📊 Executive Overview", "👥 Customer Analytics", "🏪 Seller Performance",
-     "📦 Product Categories", "🚚 Shipping & Logistics", "🔗 Market Basket",
-     "🗄️ Data Explorer"],
+    ["Executive Overview", "Customer Analytics", "Seller Performance",
+     "Product Categories", "Shipping & Logistics", "Market Basket",
+     "Data Explorer"],
     label_visibility="collapsed",
 )
 st.sidebar.divider()
-st.sidebar.info("**29 dbt models** · **56 tests** · All passing ✅")
+st.sidebar.info("**29 dbt models** · **56 tests** · All passing")
 
 # ══════════════════════════════════════════════
 # PAGE 1: EXECUTIVE OVERVIEW
 # ══════════════════════════════════════════════
-if page == "📊 Executive Overview":
-    st.title("📊 Executive Overview")
+if page == "Executive Overview":
+    st.title("Executive Overview")
     st.caption("High-level KPIs and revenue trends across the Olist marketplace")
 
     # --- KPI Cards ---
@@ -101,7 +124,7 @@ if page == "📊 Executive Overview":
     c4.metric("Late Delivery %", f"{kpi['late_rate'][0]:.1f}%")
     c5.metric("Avg Delivery", f"{lifecycle['avg_del'][0]:.1f} days")
     c6.metric("Customers / Sellers", f"{int(cust['cnt'][0]):,} / {int(sellers['cnt'][0]):,}")
-    st.caption("📌 **Total Revenue** & **Avg Order Value** — higher is better · **Late Delivery %** & **Avg Delivery** — lower is better")
+    st.caption("**Total Revenue** & **Avg Order Value** - higher is better · **Late Delivery %** & **Avg Delivery** - lower is better")
 
     st.divider()
 
@@ -127,7 +150,7 @@ if page == "📊 Executive Overview":
         fig.update_layout(template=PLOTLY_TEMPLATE, title="Monthly Revenue vs Rolling 3-Month Average",
                           yaxis_title="Revenue (R$)", xaxis_title="Month", height=400)
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("📌 **Monthly Revenue**: Total order value per month. The dashed line smooths short-term spikes using a 3-month rolling average. Consistent growth above the rolling avg signals a healthy trend.")
+        st.caption("**Monthly Revenue**: Total order value per month. The dashed line smooths short-term spikes using a 3-month rolling average. Consistent growth above the rolling avg signals a healthy trend.")
 
     with tab2:
         col_l, col_r = st.columns(2)
@@ -139,14 +162,14 @@ if page == "📊 Executive Overview":
                            template=PLOTLY_TEMPLATE, title="Month-over-Month Revenue Growth %")
             fig_g.update_layout(height=350, xaxis_type='category')
             st.plotly_chart(fig_g, use_container_width=True)
-            st.caption("📌 **MoM Growth**: Percentage change from previous month. 🟢 Green = growth, 🔴 Red = decline. Early ramp-up months (before Feb 2017) excluded due to extremely small base revenue causing misleading 1000%+ swings.")
+            st.caption("**MoM Growth**: Percentage change from previous month. Green = growth, Red = decline. Early ramp-up months (before Feb 2017) excluded due to extremely small base revenue causing misleading 1000%+ swings.")
         with col_r:
             fig_c = px.area(trends, x='month', y='cumulative_revenue',
                             template=PLOTLY_TEMPLATE, title="Cumulative Revenue")
             fig_c.update_traces(line_color='#00d4ff', fillcolor='rgba(0,212,255,0.15)')
             fig_c.update_layout(height=350)
             st.plotly_chart(fig_c, use_container_width=True)
-            st.caption("📌 **Cumulative Revenue**: Running total of all revenue. A steeper curve = faster revenue growth.")
+            st.caption("**Cumulative Revenue**: Running total of all revenue. A steeper curve = faster revenue growth.")
 
     # --- Volume metrics ---
     col_l2, col_r2 = st.columns(2)
@@ -155,20 +178,20 @@ if page == "📊 Executive Overview":
                          title="Monthly Order Volume", color_discrete_sequence=['#0f3460'])
         fig_ord.update_layout(height=300)
         st.plotly_chart(fig_ord, use_container_width=True)
-        st.caption("📌 **Order Volume**: Total orders placed per month — higher is better.")
+        st.caption("**Order Volume**: Total orders placed per month - higher is better.")
     with col_r2:
         fig_cust = px.line(trends, x='month', y='unique_customers', template=PLOTLY_TEMPLATE,
                            title="Unique Customers per Month", markers=True)
         fig_cust.update_traces(line_color='#e94560')
         fig_cust.update_layout(height=300)
         st.plotly_chart(fig_cust, use_container_width=True)
-        st.caption("📌 **Unique Customers**: Distinct buyers per month. Growth here means the marketplace is attracting new customers — higher is better.")
+        st.caption("**Unique Customers**: Distinct buyers per month. Growth here means the marketplace is attracting new customers - higher is better.")
 
 # ══════════════════════════════════════════════
 # PAGE 2: CUSTOMER ANALYTICS
 # ══════════════════════════════════════════════
-elif page == "👥 Customer Analytics":
-    st.title("👥 Customer Analytics")
+elif page == "Customer Analytics":
+    st.title("Customer Analytics")
     st.caption("RFM segmentation, Lifetime Value, and cohort retention analysis")
 
     cust_tab1, cust_tab2, cust_tab3 = st.tabs(["RFM Segmentation", "Customer LTV", "Cohort Retention"])
@@ -186,7 +209,7 @@ elif page == "👥 Customer Analytics":
                                color_discrete_sequence=px.colors.qualitative.Set2)
             fig_donut.update_layout(height=400)
             st.plotly_chart(fig_donut, use_container_width=True)
-            st.caption("📌 **RFM Segments**: Champions are best (recent, frequent, high-spend). Lost/At Risk need re-engagement campaigns.")
+            st.caption("**RFM Segments**: Champions are best (recent, frequent, high-spend). Lost/At Risk need re-engagement campaigns.")
 
         with col2:
             rfm_clean = rfm.dropna(subset=['monetary', 'frequency', 'rfm_avg'])
@@ -196,7 +219,7 @@ elif page == "👥 Customer Analytics":
                                  color_discrete_sequence=px.colors.qualitative.Set2)
             fig_rfm.update_layout(height=400, xaxis_title="Monetary (R$)", yaxis_title="Frequency")
             st.plotly_chart(fig_rfm, use_container_width=True)
-            st.caption("📌 **R** = Recency (days since last order, lower is better) · **F** = Frequency (order count, higher is better) · **M** = Monetary (total spend, higher is better). Bubble size = avg RFM score.")
+            st.caption("**R** = Recency (days since last order, lower is better) · **F** = Frequency (order count, higher is better) · **M** = Monetary (total spend, higher is better). Bubble size = avg RFM score.")
 
         # Segment filter table
         selected_seg = st.selectbox("Filter by Segment", ["All"] + sorted(rfm['rfm_segment'].unique().tolist()))
@@ -212,7 +235,7 @@ elif page == "👥 Customer Analytics":
         c1.metric("Avg LTV", f"R$ {ltv['total_spend'].mean():.2f}")
         c2.metric("Avg Tenure", f"{ltv['tenure_months'].mean():.1f} months")
         c3.metric("High-Value Customers", f"{(ltv['ltv_tier'] == 'High Value').sum():,}")
-        st.caption("📌 **LTV** = Lifetime Value (total spend per customer, higher is better) · **Tenure** = months between first and last order · **High Value** = spend ≥ R$500 and ≥3 orders")
+        st.caption("**LTV** = Lifetime Value (total spend per customer, higher is better) · **Tenure** = months between first and last order · **High Value** = spend ≥ R$500 and ≥3 orders")
 
         col_l, col_r = st.columns(2)
         with col_l:
@@ -228,7 +251,7 @@ elif page == "👥 Customer Analytics":
                                    title="Customer Spend Distribution", color_discrete_sequence=['#e94560'])
             fig_dec.update_layout(height=350, xaxis_title="Total Spend (R$)")
             st.plotly_chart(fig_dec, use_container_width=True)
-            st.caption("📌 **Spend Distribution**: Most customers are concentrated at the low end (long tail). A wider distribution indicates a healthier customer mix.")
+            st.caption("**Spend Distribution**: Most customers are concentrated at the low end (long tail). A wider distribution indicates a healthier customer mix.")
 
         # State breakdown
         state_ltv = ltv.groupby('customer_state').agg(
@@ -244,8 +267,8 @@ elif page == "👥 Customer Analytics":
     with cust_tab3:
         cohort = q(f"SELECT * FROM {read('rpt_cohort_retention')}")
 
-        st.subheader("📅 Cohort Retention Heatmap")
-        st.caption("Each row is a monthly acquisition cohort. Values show % of customers who returned in later months. Higher retention % is better — it means more repeat buyers. Month 0 is always 100% (first purchase). Low retention (1-3%) is typical for marketplaces like Olist where most purchases are one-time.")
+        st.subheader("Cohort Retention Heatmap")
+        st.caption("Each row is a monthly acquisition cohort. Values show % of customers who returned in later months. Higher retention % is better - it means more repeat buyers. Month 0 is always 100% (first purchase). Low retention (1-3%) is typical for marketplaces like Olist where most purchases are one-time.")
 
         # Pivot for heatmap
         pivot = cohort.pivot_table(index='cohort_month', columns='months_since_first',
@@ -271,8 +294,8 @@ elif page == "👥 Customer Analytics":
 # ══════════════════════════════════════════════
 # PAGE 3: SELLER PERFORMANCE
 # ══════════════════════════════════════════════
-elif page == "🏪 Seller Performance":
-    st.title("🏪 Seller Performance")
+elif page == "Seller Performance":
+    st.title("Seller Performance")
     st.caption("Revenue, delivery speed, and customer satisfaction by seller")
 
     sellers = q(f"SELECT * FROM {read('rpt_seller_performance')}")
@@ -283,7 +306,7 @@ elif page == "🏪 Seller Performance":
     c2.metric("Avg Revenue/Seller", f"R$ {sellers['total_revenue'].mean():,.0f}")
     c3.metric("Avg Review Score", f"{sellers['avg_review_score'].mean():.2f} ⭐")
     c4.metric("Avg Delivery", f"{sellers['avg_delivery_days'].mean():.1f} days")
-    st.caption("📌 **Revenue/Seller** — higher is better · **Review Score** (1-5) — higher is better · **Avg Delivery** — lower is better (faster shipping)")
+    st.caption("**Revenue/Seller** - higher is better · **Review Score** (1-5) - higher is better · **Avg Delivery** - lower is better (faster shipping)")
 
     st.divider()
 
@@ -298,7 +321,7 @@ elif page == "🏪 Seller Performance":
                      template=PLOTLY_TEMPLATE, title=f"Top {top_n} Sellers by Revenue")
         fig.update_layout(height=500, yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("📌 Bar color shows review score (🟢 green = high, 🔴 red = low). Top sellers should ideally also have high review scores.")
+        st.caption("Bar color shows review score (green = high, red = low). Top sellers should ideally also have high review scores.")
 
     with col_r:
         fig_scatter = px.scatter(sellers, x='total_revenue', y='avg_review_score',
@@ -310,7 +333,7 @@ elif page == "🏪 Seller Performance":
         fig_scatter.update_layout(height=500, xaxis_title="Total Revenue (R$)",
                                   yaxis_title="Avg Review Score")
         st.plotly_chart(fig_scatter, use_container_width=True)
-        st.caption("📌 Ideal sellers are in the **top-right** (high revenue + high reviews). Bubble size = order count. Color = delivery speed (🟢 fast, 🔴 slow).")
+        st.caption("Ideal sellers are in the **top-right** (high revenue + high reviews). Bubble size = order count. Color = delivery speed (green = fast, red = slow).")
 
     # State-level
     state_perf = sellers.groupby('seller_state').agg(
@@ -327,8 +350,8 @@ elif page == "🏪 Seller Performance":
 # ══════════════════════════════════════════════
 # PAGE 4: PRODUCT CATEGORIES
 # ══════════════════════════════════════════════
-elif page == "📦 Product Categories":
-    st.title("📦 Product Category Analysis")
+elif page == "Product Categories":
+    st.title("Product Category Analysis")
     st.caption("Category-level sales, revenue, and customer satisfaction metrics")
 
     cats = q(f"SELECT * FROM {read('rpt_product_category_analysis')}")
@@ -337,7 +360,7 @@ elif page == "📦 Product Categories":
     c1, c2, c3 = st.columns(3)
     c1.metric("Total Categories", f"{len(cats):,}")
     c2.metric("Total Revenue", f"R$ {cats['total_revenue'].sum():,.0f}")
-    c3.metric("Avg Review Score", f"{cats['avg_review_score'].mean():.2f} ⭐")
+    c3.metric("Avg Review Score", f"{cats['avg_review_score'].mean():.2f}")
 
     st.divider()
 
@@ -348,7 +371,7 @@ elif page == "📦 Product Categories":
                           template=PLOTLY_TEMPLATE, title="Revenue Treemap (Top 30 Categories)")
     fig_tree.update_layout(height=500)
     st.plotly_chart(fig_tree, use_container_width=True)
-    st.caption("📌 **Treemap**: Tile size = revenue (larger is better). Color = avg review score (🟢 green = satisfied customers, 🔴 red = dissatisfied).")
+    st.caption("**Treemap**: Tile size = revenue (larger is better). Color = avg review score (green = satisfied customers, red = dissatisfied).")
 
     col_l, col_r = st.columns(2)
     with col_l:
@@ -358,7 +381,7 @@ elif page == "📦 Product Categories":
                          template=PLOTLY_TEMPLATE, title="Top 15 Categories by Revenue")
         fig_bar.update_layout(height=500, yaxis={'categoryorder': 'total ascending'})
         st.plotly_chart(fig_bar, use_container_width=True)
-        st.caption("📌 **Revenue** — higher is better. Color = review score (🟢 good, 🔴 poor).")
+        st.caption("**Revenue** - higher is better. Color = review score (green = good, red = poor).")
 
     with col_r:
         # Low review categories
@@ -369,13 +392,13 @@ elif page == "📦 Product Categories":
         fig_risk.update_layout(height=500, yaxis={'categoryorder': 'total ascending'},
                                xaxis_title="Low Review %")
         st.plotly_chart(fig_risk, use_container_width=True)
-        st.caption("📌 **Low Review %**: Percentage of reviews scoring ≤2 out of 5. Lower is better. Categories here may need quality improvements or better descriptions.")
+        st.caption("**Low Review %**: Percentage of reviews scoring ≤2 out of 5. Lower is better. Categories here may need quality improvements or better descriptions.")
 
 # ══════════════════════════════════════════════
 # PAGE 5: SHIPPING & LOGISTICS
 # ══════════════════════════════════════════════
-elif page == "🚚 Shipping & Logistics":
-    st.title("🚚 Shipping & Logistics")
+elif page == "Shipping & Logistics":
+    st.title("Shipping & Logistics")
     st.caption("Delivery performance, distance analysis, and the 3D shipping network map")
 
     ship = q(f"SELECT * FROM {read('rpt_shipping_efficiency')}")
@@ -386,11 +409,11 @@ elif page == "🚚 Shipping & Logistics":
     c2.metric("Late Rate", f"{ship['is_late'].sum() / len(ship) * 100:.1f}%")
     c3.metric("Avg Delivery", f"{ship['total_delivery_days'].mean():.1f} days")
     c4.metric("Avg Distance", f"{ship['distance_km'].mean():.0f} km")
-    st.caption("📌 **Late Rate** — lower is better (% delivered after estimated date) · **Avg Delivery** — lower is better · **Avg Distance** — informational (Haversine km between seller & customer)")
+    st.caption("**Late Rate** - lower is better (% delivered after estimated date) · **Avg Delivery** - lower is better · **Avg Distance** - informational (Haversine km between seller & customer)")
 
     st.divider()
 
-    tab_charts, tab_map = st.tabs(["📈 Analytics", "🗺️ 3D Shipping Map"])
+    tab_charts, tab_map = st.tabs(["Analytics", "3D Shipping Map"])
 
     with tab_charts:
         col_l, col_r = st.columns(2)
@@ -402,7 +425,7 @@ elif page == "🚚 Shipping & Logistics":
                               color_discrete_sequence=px.colors.sequential.Blues_r)
             fig_buck.update_layout(height=400)
             st.plotly_chart(fig_buck, use_container_width=True)
-            st.caption("📌 Shows what % of deliveries fall into each speed bucket. A larger share in faster buckets is better.")
+            st.caption("Shows what % of deliveries fall into each speed bucket. A larger share in faster buckets is better.")
 
         with col_r:
             dist_counts = ship['distance_bucket'].value_counts().reset_index()
@@ -421,10 +444,10 @@ elif page == "🚚 Shipping & Logistics":
                             title="Distance vs Delivery Time (sample of 2000)")
         fig_sc.update_layout(height=400, xaxis_title="Distance (km)", yaxis_title="Delivery Days")
         st.plotly_chart(fig_sc, use_container_width=True)
-        st.caption("📌 Each dot is a delivery. 🔴 Red = late (delivered after estimate), 🔵 Blue = on time. Orders clustering in the bottom-left (short distance, fast delivery) is ideal.")
+        st.caption("Each dot is a delivery. Red = late (delivered after estimate), Blue = on time. Orders clustering in the bottom-left (short distance, fast delivery) is ideal.")
 
     with tab_map:
-        st.subheader("🌐 Live Shipping Network")
+        st.subheader("Live Shipping Network")
         max_dist = q(f"SELECT MAX(distance_km) AS m FROM {read('fact_shipping_network')}")['m'][0]
         selected_distance = st.slider("Max Shipping Distance (km)", 0, int(max_dist), int(max_dist))
 
@@ -452,8 +475,8 @@ elif page == "🚚 Shipping & Logistics":
 # ══════════════════════════════════════════════
 # PAGE 6: MARKET BASKET
 # ══════════════════════════════════════════════
-elif page == "🔗 Market Basket":
-    st.title("🔗 Market Basket Analysis")
+elif page == "Market Basket":
+    st.title("Market Basket Analysis")
     st.caption("Which product categories are frequently bought together?")
 
     basket = q(f"SELECT * FROM {read('rpt_market_basket')} ORDER BY co_occurrence_count DESC")
@@ -479,7 +502,7 @@ elif page == "🔗 Market Basket":
         fig.update_layout(height=600, yaxis={'categoryorder': 'total ascending'},
                           xaxis_title="Co-occurrence Count")
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("📌 **Co-occurrence**: How many orders contain both categories. Higher = stronger buying pattern. Useful for cross-sell & product bundling strategies.")
+        st.caption("**Co-occurrence**: How many orders contain both categories. Higher = stronger buying pattern. Useful for cross-sell & product bundling strategies.")
 
     with col_r:
         fig_jac = px.bar(top_pairs.sort_values('jaccard_similarity', ascending=False),
@@ -489,7 +512,7 @@ elif page == "🔗 Market Basket":
         fig_jac.update_layout(height=600, yaxis={'categoryorder': 'total ascending'},
                               xaxis_title="Jaccard Similarity")
         st.plotly_chart(fig_jac, use_container_width=True)
-        st.caption("📌 **Jaccard Similarity** = overlap / union of orders for two categories (0-1 scale). Higher = categories are more exclusively bought together. Better than raw counts for identifying true affinity.")
+        st.caption("**Jaccard Similarity** = overlap / union of orders for two categories (0-1 scale). Higher = categories are more exclusively bought together. Better than raw counts for identifying true affinity.")
 
     # Data table
     st.subheader("Full Pair Data")
@@ -498,8 +521,8 @@ elif page == "🔗 Market Basket":
 # ══════════════════════════════════════════════
 # PAGE 7: DATA EXPLORER
 # ══════════════════════════════════════════════
-elif page == "🗄️ Data Explorer":
-    st.title("🗄️ Gold Layer Data Explorer")
+elif page == "Data Explorer":
+    st.title("Gold Layer Data Explorer")
     st.caption("Query any model stored in the Gold data lake")
 
     gold_tables = {
@@ -525,7 +548,7 @@ elif page == "🗄️ Data Explorer":
 
     try:
         df = q(f"SELECT * FROM read_parquet('{path}') LIMIT {row_limit}")
-        st.success(f"✅ {len(df)} rows × {len(df.columns)} columns")
+        st.success(f"{len(df)} rows × {len(df.columns)} columns")
 
         # Stats row
         c1, c2, c3 = st.columns(3)
@@ -536,7 +559,7 @@ elif page == "🗄️ Data Explorer":
         st.dataframe(df, use_container_width=True, height=400)
 
         # Column info
-        with st.expander("📋 Column Types"):
+        with st.expander("Column Types"):
             col_info = pd.DataFrame({'Column': df.columns, 'Type': df.dtypes.astype(str),
                                      'Non-Null': df.notna().sum(), 'Unique': df.nunique()})
             st.dataframe(col_info, use_container_width=True)

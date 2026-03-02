@@ -1,6 +1,6 @@
 # 🇧🇷 E-Commerce Medallion Pipeline
 
-A fully containerized, end-to-end **Data Engineering Pipeline** built on the [Olist E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). It implements a **Medallion Architecture** (Bronze → Silver → Gold) to ingest, clean, and serve analytics-ready data — a "Data Platform in a Box."
+A fully containerized, end-to-end **Data Engineering Pipeline** built on the [Olist E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). It implements a **Medallion Architecture** (Bronze → Silver → Gold) to ingest, clean, and serve analytics-ready data - a "Data Platform in a Box."
 
 ---
 
@@ -34,7 +34,7 @@ graph LR
 
 ![Executive Overview](docs/screenshots/ExecutiveOverview_1.png)
 
-> **7 interactive pages** — see the full [Dashboard Guide](docs/dashboard.md) for all screenshots.
+> **7 interactive pages** - see the full [Dashboard Guide](docs/dashboard.md) for all screenshots.
 
 ---
 
@@ -113,7 +113,7 @@ olist-pipeline/
 │   ├── 01_ingest_bronze.py      # Raw CSV → MinIO Bronze
 │   ├── 02_process_silver.py     # Deduplicate → MinIO Silver
 │   └── 03_process_gold.py       # dbt run → MinIO Gold
-├── dbt_project/                 # dbt models (Gold layer) — 29 models, 57 tests
+├── dbt_project/                 # dbt models (Gold layer) - 29 models, 57 tests
 │   ├── models/
 │   │   ├── staging/             # Views on Silver Parquet (8 models)
 │   │   ├── marts/               # Dimensions & Fact tables (12 models)
@@ -155,7 +155,7 @@ olist-pipeline/
 ## 🗺️ Roadmap
 
 - [x] Implement dbt project for Gold transformations (dbt-duckdb)
-- [x] Add dbt tests (`unique`, `not_null`, custom `not_empty`) — 57 tests, all passing
+- [x] Add dbt tests (`unique`, `not_null`, custom `not_empty`) - 57 tests, all passing
 - [x] Add `dim_products`, `dim_geolocation`, and `dim_date` to the Gold layer
 - [x] Add `fact_order_items`, `fact_payments`, `fact_reviews`, `snapshot_daily_seller_backlog`
 - [x] Build data products: RFM segmentation, seller performance, cohort retention, revenue trends, customer LTV, market basket analysis

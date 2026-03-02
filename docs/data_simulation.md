@@ -1,6 +1,6 @@
 # 🎲 Data Simulation Guide
 
-Because the Olist dataset is a historical snapshot (not a live feed), the `scripts/simulate_stream.py` script is used to replay data day-by-day — mimicking the behavior of a real production pipeline.
+Because the Olist dataset is a historical snapshot (not a live feed), the `scripts/simulate_stream.py` script is used to replay data day-by-day - mimicking the behavior of a real production pipeline.
 
 ---
 
@@ -32,7 +32,7 @@ python scripts/simulate_stream.py --mode daily
 python scripts/simulate_stream.py --mode daily --date 2017-06-15
 ```
 
-Use `daily` mode to simulate new data arriving each day — run it before triggering the Airflow pipeline.
+Use `daily` mode to simulate new data arriving each day - run it before triggering the Airflow pipeline.
 
 ### `setup` Mode
 
@@ -57,8 +57,8 @@ For a given `target_date`, the script identifies all orders placed on that date,
 | `customers.parquet` | Joined on active `customer_id` |
 | `sellers.parquet` | Joined on active `seller_id` (from items) |
 | `products.parquet` | Joined on active `product_id` (from items) |
-| `geolocation.parquet` | Full table (no filter — reference data) |
-| `product_category_name_translation.parquet` | Full table (no filter — reference data) |
+| `geolocation.parquet` | Full table (no filter - reference data) |
+| `product_category_name_translation.parquet` | Full table (no filter - reference data) |
 
 ---
 

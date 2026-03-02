@@ -1,4 +1,4 @@
-"""backfill_data.py — Loops simulate_stream.py over the full historical date range.
+"""backfill_data.py - Loops simulate_stream.py over the full historical date range.
 Call this once to generate all data batches before running the Airflow pipeline.
 """
 import sys

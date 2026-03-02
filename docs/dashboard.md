@@ -127,8 +127,8 @@ SET s3_url_style='path';
 
 ## Caching
 
-- `@st.cache_resource` — DuckDB connection (created once per session)
-- `@st.cache_data` — Query results (cached until app restart)
+- `@st.cache_resource` - DuckDB connection (created once per session)
+- `@st.cache_data` - Query results (cached until app restart)
 
 To force a data refresh, use **"Clear cache"** in the Streamlit menu (top-right `⋮`).
 

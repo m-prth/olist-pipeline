@@ -34,7 +34,7 @@ This is the active development checklist for the E-Commerce Medallion Pipeline.
 ---
 
 ## Phase 4: Dashboard & Visualization ✅
-- [x] Build Streamlit dashboard (`scripts/dashboard.py`) — 7 interactive pages
+- [x] Build Streamlit dashboard (`scripts/dashboard.py`) - 7 interactive pages
   - [x] Executive Overview: 6 KPI cards, revenue trends, MoM growth, cumulative revenue
   - [x] Customer Analytics: RFM segmentation, LTV tiers, cohort retention heatmap
   - [x] Seller Performance: top-N ranking, revenue vs review scatter, state bars

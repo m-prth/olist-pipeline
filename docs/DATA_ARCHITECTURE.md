@@ -26,7 +26,7 @@ The raw data consists of 9 relational tables. We will ingest these as-is, adding
 
 ## 2. Silver Layer (Cleansed & Conformed)
 
-* **Transformation Engine:** Polars (deduplication) — dbt staging models provide additional cleansing for Gold
+* **Transformation Engine:** Polars (deduplication) - dbt staging models provide additional cleansing for Gold
 * **Storage:** MinIO `processing-zone/silver/`
 * **Format:** Iceberg (for ACID compliance) or Parquet
 

@@ -80,18 +80,18 @@ dbt_run  →  dbt_test
 ### What `dbt run` Builds
 
 **Staging models** (materialized as views):
-- `stg_orders` — Casts timestamp columns from Silver orders
-- `stg_customers` — Selects customer fields from Silver
-- `stg_sellers` — Selects seller fields from Silver
-- `stg_order_items` — Selects order item fields from Silver
-- `stg_geolocation` — Selects geolocation fields from Silver
+- `stg_orders` - Casts timestamp columns from Silver orders
+- `stg_customers` - Selects customer fields from Silver
+- `stg_sellers` - Selects seller fields from Silver
+- `stg_order_items` - Selects order item fields from Silver
+- `stg_geolocation` - Selects geolocation fields from Silver
 
 **Mart models** (materialized as external Parquet to `s3://olist-lake/gold/`):
-- `dim_customers` — `DISTINCT ON(customer_unique_id)` + surrogate key
-- `dim_sellers` — `DISTINCT ON(seller_id)` + surrogate key
-- `fact_orders` — Order status, date key, `is_late` boolean
-- `fact_order_lifecycle` — `date_diff()` between purchase → approval → delivery timestamps
-- `fact_shipping_network` — Joins orders + customers + sellers + geolocation, computes Haversine `distance_km`
+- `dim_customers` - `DISTINCT ON(customer_unique_id)` + surrogate key
+- `dim_sellers` - `DISTINCT ON(seller_id)` + surrogate key
+- `fact_orders` - Order status, date key, `is_late` boolean
+- `fact_order_lifecycle` - `date_diff()` between purchase → approval → delivery timestamps
+- `fact_shipping_network` - Joins orders + customers + sellers + geolocation, computes Haversine `distance_km`
 
 ### What `dbt test` Validates
 
